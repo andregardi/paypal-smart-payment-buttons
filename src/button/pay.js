@@ -4,8 +4,8 @@ import { noop, stringifyError } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { applepay, checkout, cardField, cardFields, native, nonce, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
-import { getLogger, promiseNoop, sendBeacon } from '../lib';
+import { applepay, checkout, cardField, cardFields, native, brandedVaultCard, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
+import { getLogger, sendBeacon } from '../lib';
 import { FPTI_TRANSITION } from '../constants';
 import { updateButtonClientConfig } from '../api';
 import { getConfirmOrder } from '../props/confirmOrder';
@@ -16,7 +16,7 @@ import { validateOrder } from './validation';
 import { showButtonSmartMenu } from './menu';
 
 const PAYMENT_FLOWS : $ReadOnlyArray<PaymentFlow> = [
-    nonce,
+    brandedVaultCard,
     vaultCapture,
     walletCapture,
     cardField,
@@ -77,9 +77,9 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         sendPersonalizationBeacons(personalization);
 
         const { name, init, inline, spinner, updateFlowClientConfig } = getPaymentFlow({ props, payment, config, components, serviceData });
-        const { click = promiseNoop, start, close } = init({ props, config, serviceData, components, payment });
+        const { click, start, close } = init({ props, config, serviceData, components, payment });
 
-        const clickPromise = ZalgoPromise.try(click);
+        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
         clickPromise.catch(noop);
 
         getLogger()
