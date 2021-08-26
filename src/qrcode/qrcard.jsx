@@ -17,7 +17,8 @@ import {
     VenmoMark,
     AuthMark,
     cardStyle,
-    debugging_nextStateMap
+    debugging_nextStateMap,
+    footerMessageVariations
 } from './components';
 
 
@@ -54,6 +55,8 @@ function QRCard({
         return state === QRCODE_STATE.ERROR;
     };
 
+    const instructionMessage = footerMessageVariations.optionA;
+
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
@@ -68,7 +71,7 @@ function QRCard({
                         <Logo />
                         <div id="instructions">
                             <InstructionIcon stylingClass="instruction-icon" />
-                            To scan QR code, Open your Venmo App
+                            { instructionMessage }
                         </div>
                     </div>}
                 <div className="card" id="back-view" >
@@ -89,7 +92,7 @@ function QRCard({
                     type="button"
                     style={ { position: 'absolute', bottom: '8px', padding: '4px', right: '8px' } }
                     onClick={ () => setState(debugging_nextStateMap.get(state)) }
-                >Next State</button>}
+                    >Next State</button>}
             </div>
         </Fragment>
     );
