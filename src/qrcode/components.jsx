@@ -241,9 +241,3 @@ export const debugging_nextStateMap : Map<string, string> = new Map([
     [ QRCODE_STATE.AUTHORIZED, QRCODE_STATE.ERROR ],
     [ QRCODE_STATE.SCANNED, QRCODE_STATE.AUTHORIZED ]
 ]);
-
-export const footerMessageVariations : Map<string, *> = new Map = {
-    optionA: (<span>To pay, open the Venmo app and<br /> scan the QR code above.</span>),
-    optionB: (<span>Scan this code from the Venmo<br /> app to finish paying.</span>),
-    optionC: (<span><strong>Finish paying through the app.</strong><br /> Open Venmo and tap the bottom<br /> left icon to scan the code and pay.</span>)
-}    
