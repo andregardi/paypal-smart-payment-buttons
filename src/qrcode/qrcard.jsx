@@ -68,8 +68,9 @@ function QRCard({
                         <Logo />
                         <div id="instructions">
                             <InstructionIcon stylingClass="instruction-icon" />
-                            <span>To pay, open the Venmo app and<br />
-                                scan the QR code above.</span>
+                            <span>
+                                To pay, open the Venmo app and <br />scan the QR code above.
+                            </span>
                         </div>
                     </div>}
                 <div className="card" id="back-view" >
