@@ -187,14 +187,14 @@ export const cardStyle : string = `
         width: calc(100% - 32px);
     }
     #instructions {
-        background-color: #F5F5F5;
-        border-bottom-left-radius: 8px;
-        border-bottom-right-radius: 8px;
+        background-color: #FFFF;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
         box-sizing: border-box;
         padding: 16px;
         display: flex;
         align-items: center;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 16px;
         width: 100%;
     }
