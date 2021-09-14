@@ -127,7 +127,8 @@ export type QRCodeProps = {|
     cspNonce : ?string,
     state? : $Values<typeof QRCODE_STATE>,
     errorText? : string,
-    onClose? : () => ZalgoPromise<void>
+    onClose? : () => ZalgoPromise<void>,
+    onSubmitFeedback? : (reason : string) => void
 |};
 export type QRCodeType = ZoidComponent<QRCodeProps>;
 

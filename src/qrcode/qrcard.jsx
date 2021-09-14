@@ -17,7 +17,8 @@ import {
     VenmoMark,
     AuthMark,
     cardStyle,
-    debugging_nextStateMap
+    debugging_nextStateMap,
+    Survey
 } from './components';
 
 
@@ -40,6 +41,16 @@ function useXProps<T>() : T {
     };
 }
 
+function useSurvey<T>() : T {
+    const [ state, setState ] = useState({
+        isEnabled:  false,
+        reason:     'prefer_not_to_say'
+    });
+    const enable = () => setState({ ...state, isEnabled: true });
+    const setReason = (reason) => setState({ ...state, reason });
+    return { ...state, enable, setReason };
+}
+
 function QRCard({
     cspNonce,
     svgString,
@@ -49,7 +60,8 @@ function QRCard({
     svgString : string,
     debug? : boolean
 |}) : mixed {
-    const { state, errorText, setState } = useXProps();
+    const { state, errorText, setState, onSubmitFeedback, close } = useXProps();
+    const survey = useSurvey();
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
     };
@@ -74,11 +86,26 @@ function QRCard({
         </div>
     );
 
+    const surveyElement = (
+        <Survey survey={ survey } />
+    );
+
+    const onCloseClick = () => {
+        if (survey.isEnabled) {
+            onSubmitFeedback(survey.reason);
+            close();
+        } else {
+            survey.enable();
+        }
+    };
+    const content = survey.isEnabled ? surveyElement : frontView;
+
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
+            <a href="#" id="close" aria-label="close" role="button" onClick={ onCloseClick } />
             <div id="view-boxes" className={ state }>
-                { isError() ? errorMessage : frontView }
+                { isError() ? errorMessage : content }
                 <div className="card" id="back-view" >
                     <span className="mark">
                         <VenmoMark />

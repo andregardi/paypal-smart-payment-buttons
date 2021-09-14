@@ -79,6 +79,7 @@ type NativeQRCodeOptions = {|
     components : Components,
     fundingSource : $Values<typeof FUNDING>,
     sessionUID : string,
+    buttonSessionID : ?string,
     clean : CleanupType,
     callbacks : {|
         onInit : () => ZalgoPromise<{|
@@ -124,7 +125,7 @@ type NativeQRCode = {|
     start : () => ZalgoPromise<void>
 |};
 
-export function initNativeQRCode({ props, serviceData, config, components, fundingSource, clean, callbacks, sessionUID } : NativeQRCodeOptions) : NativeQRCode {
+export function initNativeQRCode({ props, serviceData, config, components, fundingSource, clean, callbacks, sessionUID, buttonSessionID  } : NativeQRCodeOptions) : NativeQRCode {
     const { createOrder, onClick } = props;
     const { QRCode } = components;
     const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
@@ -148,6 +149,16 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                     }).flush();
                     onClose();
                 });
+            };
+
+            const onSubmitFeedback = (reason : string) => {
+                getLogger().info(`VenmoDesktopPay_qrcode_survey`).track({
+                    [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
+                    [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
+                    [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
+                    [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
+                    [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   reason
+                }).flush();
             };
 
             const validatePromise = ZalgoPromise.try(() => {
@@ -179,10 +190,11 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                     const url = getNativeUrl({ props, serviceData, config, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
 
                     const qrCodeComponentInstance = QRCode({
-                        cspNonce:  config.cspNonce,
-                        qrPath:    url,
-                        state:     QRCODE_STATE.DEFAULT,
-                        onClose:   onQRClose
+                        cspNonce:               config.cspNonce,
+                        qrPath:                 url,
+                        state:                  QRCODE_STATE.DEFAULT,
+                        onClose:                onQRClose,
+                        onSubmitFeedback
                     });
 
                     function updateQRCodeComponentState(newState : {|

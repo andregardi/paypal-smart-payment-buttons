@@ -74,6 +74,70 @@ export function AuthMark() : mixed {
     );
 }
 
+const boxSvg = (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="7.75" stroke="#888C94" stroke-width="0.5" />
+    </svg>
+);
+
+const checkedBoxSvg = (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.0527 29.1882L31.2473 15.9935C32.1845 15.0563 32.1845 13.5367 31.2473 12.5994C30.31 11.6622 28.7904 11.6622 27.8532 12.5994L16.3717 24.0809L12.1452 19.8543C11.2079 18.9171 9.6883 18.9171 8.75104 19.8543C7.81378 20.7916 7.81378 22.3112 8.75104 23.2485L14.6907 29.1882C15.628 30.1254 17.1154 30.1254 18.0527 29.1882Z" fill="#148572" />
+        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="7.75" stroke="#148572" stroke-width="0.5" />
+    </svg>
+);
+
+export type SurveyType = {|
+    isEnabled : boolean,
+    reason : string,
+    enable : ()=> void,
+    setReason : (reason : string) => void
+|};
+
+export function Survey({ survey } : {| survey : SurveyType |}) : mixed {
+    const answers = [
+        {
+            text:   'Having trouble scanning the QR code',
+            reason: 'having_trouble_scanning_the_qr_code'
+        },
+        {
+            text:   'Don’t have the Venmo app on my mobile device',
+            reason: 'dont_have_the_venmo_app_on_my_mobile_device'
+        },
+        {
+            text:   'I prefer to pay another way',
+            reason: 'prefer_to_pay_another_way'
+        },
+        {
+            text:   'I prefer not to say',
+            reason: 'prefer_not_to_say'
+        }
+    ];
+    const onChange = event => {
+        event.target.blur();
+        survey.setReason(event.target.value);
+    };
+
+    const answersElements = answers.map(answer => (
+        <div class="answer">
+            <input type="checkbox" id={ answer.reason } value={ answer.reason } checked={ answer.reason === survey.reason } onChange={ onChange } />
+            <label for={ answer.reason }>
+                { answer.reason === survey.reason ? checkedBoxSvg : boxSvg }
+                { answer.text }
+            </label>
+        </div>
+    ));
+    return (
+        <div id="survey">
+            <h1>We’re sorry to see you leave!</h1>
+            <p class="message">Please let us know why. Your feedback is important to us.</p>
+            <div class="answers">
+                { answersElements }
+            </div>
+        </div>
+    );
+}
+
 export const cardStyle : string = `
     * {
         box-sizing: border-box;
@@ -232,6 +296,92 @@ export const cardStyle : string = `
         bottom: -10%;
         transition: transform 500ms, opacity 500ms;
         transition-delay: 350ms;
+    }
+    #close {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 16px;
+        height: 16px;
+        opacity: 0.6;
+        z-index: 10;
+    }
+    #close:hover {
+        opacity: 1;
+    }
+    #close:before, #close:after {
+        position: absolute;
+        left: 8px;
+        content: ' ';
+        height: 16px;
+        width: 2px;
+        background-color: #FFF;
+    }
+    #close:before {
+        transform: rotate(45deg);
+    }
+    #close:after {
+        transform: rotate(-45deg);
+    }
+    #survey {
+        background: #FFFFFF;
+        height: 422px;
+        width: 500px;
+    }
+    #survey h1 {
+        width: 423px;
+        font-family: monospace;
+        font-size: 24px;
+        line-height: 32px;
+        text-align: center;
+        margin: auto;
+        margin-top: 40px;
+    }
+    #survey .message {
+        width: 423px;
+        font-family: monospace;
+        font-size: 16px;
+        line-height: 20px;
+        text-align: center;
+        margin: auto;
+        margin-top: 8px;
+    }
+    #survey .answers {
+        width: 400px;
+        font-size: 16px;
+        line-height: 20px;
+        margin: auto;
+        cursor: pointer;
+    }
+    #survey .answers .answer {
+        margin-top: 28px;
+        display: flex;
+        align-items: center;
+    }
+    #survey label {
+        font-family: monospace;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+    }
+    #survey .answers svg{
+        margin-right: 8px;
+        min-width: 40px;
+    }
+    #survey .answers input{
+        width: 0px;
+        height: 40px;
+        position: relative;
+    }
+    #survey .answers input:focus::after {
+        content: "";
+        min-width: 44px;
+        height: 44px;
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        border: solid 1px black;
     }
     `;
 

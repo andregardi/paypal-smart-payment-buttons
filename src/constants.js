@@ -161,6 +161,7 @@ export const FPTI_TRANSITION = {
     
     QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
     QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
+    QR_SURVEY:                              ('desktop_exit_survey_selection_submitted' : 'desktop_exit_survey_selection_submitted'),
     
     HONEY_IDENTIFY:                         ('honey_identify' : 'honey_identify'),
     
@@ -178,17 +179,18 @@ export const FPTI_BUTTON_TYPE = {
 };
 
 export const FPTI_CUSTOM_KEY = {
-    ERR_DESC:                  ('int_error_desc' : 'int_error_desc'),
-    HONEY_DEVICE_ID:           ('honey_device_id' : 'honey_device_id'),
-    HONEY_SESSION_ID:          ('honey_session_id' : 'honey_session_id'),
-    INTEGRATION_ISSUE:         ('integration_issue' : 'integration_issue'),
-    INTEGRATION_WHITELIST:     ('whitelist' : 'whitelist'),
-    INFO_MSG:                  ('info_msg' : 'info_msg'),
-    PMT_TOKEN:                 ('pmt_token' : 'pmt_token'),
-    TRANSITION_TYPE:           ('transition_type' : 'transition_type'),
-    TRANSITION_REASON:         ('transition_reason' : 'transition_reason'),
-    SHIPPING_CALLBACK_PASSED:  ('shipping_callback_passed' : 'shipping_callback_passed'),
-    SHIPPING_CALLBACK_INVOKED: ('shipping_callback_invoked' : 'shipping_callback_invoked')
+    ERR_DESC:                   ('int_error_desc' : 'int_error_desc'),
+    HONEY_DEVICE_ID:            ('honey_device_id' : 'honey_device_id'),
+    HONEY_SESSION_ID:           ('honey_session_id' : 'honey_session_id'),
+    INTEGRATION_ISSUE:          ('integration_issue' : 'integration_issue'),
+    INTEGRATION_WHITELIST:      ('whitelist' : 'whitelist'),
+    INFO_MSG:                   ('info_msg' : 'info_msg'),
+    PMT_TOKEN:                  ('pmt_token' : 'pmt_token'),
+    TRANSITION_TYPE:            ('transition_type' : 'transition_type'),
+    TRANSITION_REASON:          ('transition_reason' : 'transition_reason'),
+    SHIPPING_CALLBACK_PASSED:   ('shipping_callback_passed' : 'shipping_callback_passed'),
+    SHIPPING_CALLBACK_INVOKED:  ('shipping_callback_invoked' : 'shipping_callback_invoked'),
+    DESKTOP_EXIT_SURVEY_REASON: ('reason' : 'reason')
 };
 
 export const FPTI_BUTTON_KEY = {
