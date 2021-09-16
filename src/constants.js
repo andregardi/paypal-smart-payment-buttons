@@ -162,6 +162,8 @@ export const FPTI_TRANSITION = {
     QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
     QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
     QR_SURVEY:                              ('desktop_exit_survey_selection_submitted' : 'desktop_exit_survey_selection_submitted'),
+    QR_PREPARE_PAY:                         ('qr_prepare_pay' : 'qr_prepare_pay'),
+    QR_PROCESS_PAY_WITH:                    ('qr_process_pay_with' : 'qr_process_pay_with'),
     
     HONEY_IDENTIFY:                         ('honey_identify' : 'honey_identify'),
     
