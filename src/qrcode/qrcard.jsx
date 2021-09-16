@@ -107,6 +107,9 @@ function QRCard({
         }
     };
     const content = survey.isEnabled ? surveyElement : frontView;
+    const escapePathFooter = !survey.isEnabled && (
+        <p className="escape-path">Don&apos;t have the app? Pay with <span className="escape-path__link" onClick={ () => handleClick(FUNDING.PAYPAL) }>PayPal</span> or <span className="escape-path__link" onClick={ () => handleClick(FUNDING.CARD) }>Credit/Debit card</span></p>
+    )
 
     return (
         <Fragment>
@@ -134,7 +137,7 @@ function QRCard({
                     onClick={ () => setState(debugging_nextStateMap.get(state)) }
                 >Next State</button>}
             </div>
-            <p className="escape-path">Don&apos;t have the app? Pay with <span className="escape-path__link" onClick={ () => handleClick(FUNDING.PAYPAL) }>PayPal</span> or <span className="escape-path__link" onClick={ () => handleClick(FUNDING.CARD) }>Credit/Debit card</span></p>
+            { escapePathFooter }
         </Fragment>
     );
 }
