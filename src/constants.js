@@ -190,7 +190,7 @@ export const FPTI_CUSTOM_KEY = {
     TRANSITION_REASON:          ('transition_reason' : 'transition_reason'),
     SHIPPING_CALLBACK_PASSED:   ('shipping_callback_passed' : 'shipping_callback_passed'),
     SHIPPING_CALLBACK_INVOKED:  ('shipping_callback_invoked' : 'shipping_callback_invoked'),
-    DESKTOP_EXIT_SURVEY_REASON: ('reason' : 'reason')
+    DESKTOP_EXIT_SURVEY_REASON: ('desktop_exit_survey_reason' : 'desktop_exit_survey_reason')
 };
 
 export const FPTI_BUTTON_KEY = {
