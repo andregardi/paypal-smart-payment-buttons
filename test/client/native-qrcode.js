@@ -729,15 +729,13 @@ describe('native qrcode cases', () => {
             });
         });
 
-        it('should render a button with createOrder, click the button and call onSubmitFeedback', async () => {
+        it('should render a button with createOrder, click the button, and render checkout via qrcode that contains escape path with empty ineligibilityReason and onSubmitFeedback', async () => {
             return await wrapPromise(async ({ expect, avoid }) => {
                 window.xprops.platform = PLATFORM.DESKTOP;
                 delete window.xprops.onClick;
-
+    
                 const sessionToken = uniqueID();
-                const payerID = 'XXYYZZ654321';
-                const onSubmitFeedbackReason = 'mock_reason'
-
+    
                 const gqlMock = getGraphQLApiMock({
                     extraHandler: expect('firebaseGQLCall', ({ data }) => {
                         if (data.query.includes('query GetNativeEligibility')) {
@@ -755,15 +753,15 @@ describe('native qrcode cases', () => {
                                 }
                             };
                         }
-
+    
                         if (!data.query.includes('query GetFireBaseSessionToken')) {
                             return;
                         }
-
+    
                         if (!data.variables.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed`);
                         }
-
+    
                         return {
                             data: {
                                 firebase: {
@@ -776,52 +774,59 @@ describe('native qrcode cases', () => {
                         };
                     })
                 }).expectCalls();
-
+    
                 let mockWebSocketServer;
-
+    
                 mockFunction(window.paypal, 'QRCode', expect('QRCode', ({ original, args: [ props ] }) => {
                     const query = parseQuery(props.qrPath.split('?')[1]);
-
+    
                     const { expect: expectSocket, onInit } = getNativeFirebaseMock({
                         sessionUID:   query.sessionUID
                     });
-
+    
                     mockWebSocketServer = expectSocket();
-
+                    
                     ZalgoPromise.try(() => {
                         return onInit();
                     }).then(() => {
-                        return props.onSubmitFeedback(onSubmitFeedbackReason);
+                        return props.onSubmitFeedback('mock reason');
                     });
-
+    
                     return original(props);
                 }));
-
-                window.xprops.onSubmitFeedback = mockAsyncProp(expect('onSubmitFeedback', (reason) => {
-                    if (onSubmitFeedbackReason !== reason) {
-                        throw new Error(`Expected onSubmitFeedbackReason to be ${ onSubmitFeedbackReason }, got ${ reason }`);
-                    }
-                }));
+    
+                const orderID = generateOrderID();
+    
+                window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
+                    return ZalgoPromise.try(() => {
+                        return orderID;
+                    });
+                }), 50);
+    
+                window.xprops.onCancel = avoid('onCancel');
+                window.xprops.onApprove = avoid('onApprove');
 
                 const fundingEligibility = {
                     venmo: {
                         eligible: true
                     }
                 };
-
+    
                 createButtonHTML({ fundingEligibility });
-
+    
                 await mockSetupButton({
                     eligibility: {
                         cardFields: false,
                         native:     true
                     }
                 });
-
+    
                 await clickButton(FUNDING.VENMO);
 
-                window.xprops.onSubmitFeedback(onSubmitFeedbackReason);
-
+                if (mockWebSocketServer) {
+                    mockWebSocketServer.done();
+                }
+                
                 gqlMock.done();
             });
         });
