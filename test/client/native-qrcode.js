@@ -782,7 +782,7 @@ describe('native qrcode cases', () => {
                 mockFunction(window.paypal, 'QRCode', expect('QRCode', ({ original, args: [ props ] }) => {
                     const query = parseQuery(props.qrPath.split('?')[1]);
 
-                    const { expect: expectSocket, onInit, onApprove } = getNativeFirebaseMock({
+                    const { expect: expectSocket, onInit } = getNativeFirebaseMock({
                         sessionUID:   query.sessionUID
                     });
 
@@ -796,8 +796,6 @@ describe('native qrcode cases', () => {
 
                     return original(props);
                 }));
-
-                const orderID = generateOrderID();
 
                 window.xprops.onSubmitFeedback = mockAsyncProp(expect('onSubmitFeedback', (reason) => {
                     if (onSubmitFeedbackReason !== reason) {
@@ -826,5 +824,6 @@ describe('native qrcode cases', () => {
 
                 gqlMock.done();
             });
+        });
     });
 });
