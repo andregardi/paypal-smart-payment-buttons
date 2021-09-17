@@ -74,16 +74,16 @@ export function AuthMark() : mixed {
     );
 }
 
-const boxSvg = (
+const radioSvg = (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="7.75" stroke="#888C94" stroke-width="0.5" />
+        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="19.75" stroke="#888C94" stroke-width="0.5" />
     </svg>
 );
 
-const checkedBoxSvg = (
+const checkedRadioSvg = (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18.0527 29.1882L31.2473 15.9935C32.1845 15.0563 32.1845 13.5367 31.2473 12.5994C30.31 11.6622 28.7904 11.6622 27.8532 12.5994L16.3717 24.0809L12.1452 19.8543C11.2079 18.9171 9.6883 18.9171 8.75104 19.8543C7.81378 20.7916 7.81378 22.3112 8.75104 23.2485L14.6907 29.1882C15.628 30.1254 17.1154 30.1254 18.0527 29.1882Z" fill="#148572" />
-        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="7.75" stroke="#148572" stroke-width="0.5" />
+        <circle cx="20" cy="20" r="12" fill="#148572" />
+        <rect x="0.25" y="0.25" width="39.5" height="39.5" rx="19.75" stroke="#148572" stroke-width="0.5" />
     </svg>
 );
 
@@ -91,10 +91,17 @@ export type SurveyType = {|
     isEnabled : boolean,
     reason : string,
     enable : ()=> void,
+    disable : ()=> void,
     setReason : (reason : string) => void
 |};
 
-export function Survey({ survey } : {| survey : SurveyType |}) : mixed {
+export function Survey ({
+    survey,
+    onCloseClick
+} : {|
+    survey : SurveyType,
+    onCloseClick : () => void
+|}) : mixed {
     const answers = [
         {
             text:   'Having trouble scanning the QR code',
@@ -120,9 +127,9 @@ export function Survey({ survey } : {| survey : SurveyType |}) : mixed {
 
     const answersElements = answers.map(answer => (
         <div class="answer">
-            <input type="checkbox" id={ answer.reason } value={ answer.reason } checked={ answer.reason === survey.reason } onChange={ onChange } />
+            <input type="radio" id={ answer.reason } value={ answer.reason } checked={ answer.reason === survey.reason } onChange={ onChange } />
             <label for={ answer.reason }>
-                { answer.reason === survey.reason ? checkedBoxSvg : boxSvg }
+                { answer.reason === survey.reason ? checkedRadioSvg : radioSvg }
                 { answer.text }
             </label>
         </div>
@@ -134,6 +141,8 @@ export function Survey({ survey } : {| survey : SurveyType |}) : mixed {
             <div class="answers">
                 { answersElements }
             </div>
+            <button type="button" class="continue-button" onClick={ survey.disable }>Continue payment</button>
+            <button type="button" class="leave-button" onClick={ onCloseClick }>Leave</button>
         </div>
     );
 }
@@ -316,7 +325,7 @@ export const cardStyle : string = `
         position: absolute;
         left: 8px;
         content: ' ';
-        height: 16px;
+        height: 20px;
         width: 2px;
         background-color: #FFF;
     }
@@ -328,27 +337,61 @@ export const cardStyle : string = `
     }
     #survey {
         background: #FFFFFF;
-        height: 422px;
+        height: 542px;
         width: 500px;
+        border-radius: 8px;
     }
     #survey h1 {
         width: 423px;
-        font-family: monospace;
+        font-weight: 500;
         font-size: 24px;
         line-height: 32px;
         text-align: center;
         margin: auto;
+        margin-top: 30px;
+    }
+    #survey button {
+        display: block;
+        margin: auto;
+        border: none;
+        font-family: sans-serif;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    #survey button.continue-button {
         margin-top: 40px;
+        min-height: 48px;
+        width:  335px;
+        background: #0074DE;
+        height: 24px;
+        font-size: 18px;
+        line-height: 24px;
+        text-align: center;
+        color: #FFFFFF;
+        border-radius: 24px;
+        display: block;
+    }
+    #survey button.leave-button {
+        margin-top: 10px;
+        height: 48px;
+        width:  335px;
+        color: #0074DE;
+        background: none;
+        font-size: 18px;
+        line-height: 24px;
+        text-align: center;
+        display: block;
     }
     #survey .message {
-        width: 423px;
-        font-family: monospace;
+        width: 333px;
+        font-family: sans-serif;
         font-size: 16px;
         line-height: 20px;
         text-align: center;
         margin: auto;
         margin-top: 8px;
     }
+    
     #survey .answers {
         width: 400px;
         font-size: 16px;
@@ -362,7 +405,7 @@ export const cardStyle : string = `
         align-items: center;
     }
     #survey label {
-        font-family: monospace;
+        font-family: sans-serif;
         font-size: 16px;
         cursor: pointer;
         display: flex;
@@ -385,6 +428,7 @@ export const cardStyle : string = `
         top: -2px;
         left: -2px;
         border: solid 1px black;
+        border-radius: 50%;
     }
     .escape-path {    
         background-color: white;

@@ -48,8 +48,9 @@ function useSurvey<T>() : T {
         reason:     'prefer_not_to_say'
     });
     const enable = () => setState({ ...state, isEnabled: true });
+    const disable = () => setState({ ...state, isEnabled: false });
     const setReason = (reason) => setState({ ...state, reason });
-    return { ...state, enable, setReason };
+    return { ...state, enable, disable, setReason };
 }
 
 function QRCard({
@@ -74,6 +75,15 @@ function QRCard({
         });
     };
 
+    const onCloseClick = () => {
+        if (survey.isEnabled) {
+            onSubmitFeedback(survey.reason);
+            close();
+        } else {
+            survey.enable();
+        }
+    };
+
     const errorMessage = (
         <ErrorMessage
             message={ errorText }
@@ -93,19 +103,11 @@ function QRCard({
             <Logo />
         </div>
     );
-
+    
     const surveyElement = (
-        <Survey survey={ survey } />
+        <Survey survey={ survey } onCloseClick={ onCloseClick } />
     );
 
-    const onCloseClick = () => {
-        if (survey.isEnabled) {
-            onSubmitFeedback(survey.reason);
-            close();
-        } else {
-            survey.enable();
-        }
-    };
     const content = survey.isEnabled ? surveyElement : frontView;
     const escapePathFooter = !survey.isEnabled && (
         <p className="escape-path">Don&apos;t have the app? Pay with <span className="escape-path__link" onClick={ () => handleClick(FUNDING.PAYPAL) }>PayPal</span> or <span className="escape-path__link" onClick={ () => handleClick(FUNDING.CARD) }>Credit/Debit card</span></p>
