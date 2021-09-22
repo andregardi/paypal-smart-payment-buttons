@@ -155,16 +155,6 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                 });
             };
 
-            const onSubmitFeedback = (reason : string) => {
-                getLogger().info(`VenmoDesktopPay_qrcode_survey`).track({
-                    [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
-                    [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
-                    [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
-                    [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
-                    [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   reason
-                }).flush();
-            };
-
             const onEscapePath = (selectedFundingSource : $Values<typeof FUNDING>) => {
                 getLogger().info(`VenmoDesktopPay_process_pay_with_${ selectedFundingSource }`).track({
                     [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
@@ -200,13 +190,14 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
 
                 return createOrder().then((orderID) => {
                     const url = getNativeUrl({ props, serviceData, config, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
-
+                    
                     const qrCodeComponentInstance = QRCode({
                         cspNonce:               config.cspNonce,
                         qrPath:                 url,
                         state:                  QRCODE_STATE.DEFAULT,
                         onClose:                onQRClose,
-                        onSubmitFeedback,
+                        buttonSessionID:        buttonSessionID || '',
+                        getLogger,
                         onEscapePath
                     });
 
@@ -218,6 +209,7 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                             cspNonce:     config.cspNonce,
                             qrPath:       url,
                             onClose:      onQRClose,
+                            getLogger,
                             onEscapePath,
                             ...newState
                         });

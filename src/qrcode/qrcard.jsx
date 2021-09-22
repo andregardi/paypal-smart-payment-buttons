@@ -3,12 +3,10 @@
 
 import { h, render, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { FUNDING } from '@paypal/sdk-constants/src';
+import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import {
-    getBody
-} from '../lib';
-import { QRCODE_STATE } from '../constants';
+import { getBody } from '../lib';
+import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
 
 import {
     ErrorMessage,
@@ -18,10 +16,9 @@ import {
     VenmoMark,
     AuthMark,
     cardStyle,
-    debugging_nextStateMap,
-    Survey
+    debugging_nextStateMap
 } from './components';
-
+import { Survey, useSurvey } from './survey';
 
 function useXProps<T>() : T {
     const [ xprops, setXProps ] = useState(window.xprops);
@@ -42,17 +39,6 @@ function useXProps<T>() : T {
     };
 }
 
-function useSurvey<T>() : T {
-    const [ state, setState ] = useState({
-        isEnabled:  false,
-        reason:     'prefer_not_to_say'
-    });
-    const enable = () => setState({ ...state, isEnabled: true });
-    const disable = () => setState({ ...state, isEnabled: false });
-    const setReason = (reason) => setState({ ...state, reason });
-    return { ...state, enable, disable, setReason };
-}
-
 function QRCard({
     cspNonce,
     svgString,
@@ -62,7 +48,7 @@ function QRCard({
     svgString : string,
     debug? : boolean
 |}) : mixed {
-    const { state, errorText, setState, onSubmitFeedback, close } = useXProps();
+    const { state, errorText, setState, close, getLogger, buttonSessionID } = useXProps();
     const survey = useSurvey();
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
@@ -77,8 +63,23 @@ function QRCard({
 
     const onCloseClick = () => {
         if (survey.isEnabled) {
-            onSubmitFeedback(survey.reason);
-            close();
+            const logger = getLogger();
+
+            const logAndClose = async () => {
+                const { info } =  await logger;
+                const { track } =  await info(`VenmoDesktopPay_qrcode_survey`);
+                await track({
+                    [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
+                    [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
+                    [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
+                    [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
+                    [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
+                });
+
+                close();
+            };
+
+            logAndClose();
         } else {
             survey.enable();
         }

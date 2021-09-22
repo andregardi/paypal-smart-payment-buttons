@@ -3,6 +3,7 @@
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
 import { COUNTRY, LANG, CARD, WALLET_INSTRUMENT, FUNDING } from '@paypal/sdk-constants/src';
+import type { LoggerType } from 'beaver-logger/src';
 
 import { CONTEXT, QRCODE_STATE } from './constants';
 
@@ -128,7 +129,8 @@ export type QRCodeProps = {|
     state? : $Values<typeof QRCODE_STATE>,
     errorText? : string,
     onClose? : () => ZalgoPromise<void>,
-    onSubmitFeedback? : (reason : string) => void,
+    buttonSessionID? : string,
+    getLogger : () => LoggerType,
     onEscapePath? : (selectedFundingSource : $Values<typeof FUNDING>) => ZalgoPromise<void>
 |};
 export type QRCodeType = ZoidComponent<QRCodeProps>;
