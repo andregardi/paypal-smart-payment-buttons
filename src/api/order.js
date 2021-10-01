@@ -138,7 +138,8 @@ export function captureOrder(orderID : string, { facilitatorAccessToken, buyerAc
             url:         `${ ORDERS_API_URL }/${ orderID }/capture`,
             headers:     {
                 [ HEADERS.PARTNER_ATTRIBUTION_ID ]: partnerAttributionID || '',
-                [ HEADERS.PREFER ]:                 PREFER.REPRESENTATION
+                [ HEADERS.PREFER ]:                 PREFER.REPRESENTATION,
+                [ HEADERS.PAYPAL_REQUEST_ID ]:      orderID
             }
         }).catch(err => {
             const restCorrID = getErrorResponseCorrelationID(err);

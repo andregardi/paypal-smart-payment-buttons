@@ -1,15 +1,12 @@
 /* @flow */
 
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
-import { ENV, INTENT, COUNTRY, FUNDING, CARD, PLATFORM, CURRENCY, type FundingEligibilityType } from '@paypal/sdk-constants/src';
+import { ENV, INTENT, COUNTRY, FUNDING, CARD, PLATFORM, CURRENCY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
-import type { InstallmentsFlowType } from '@paypal/installments/src/types';
 
-import type { ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
-    ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType, QRCodeType } from '../types';
+import type { LocaleType, ProxyWindow, Wallet, ConnectOptions } from '../types';
 import type { XApplePaySessionConfigRequest } from '../payment-flows/types';
-import { type FirebaseConfig } from '../api';
-import { getNonce, getStorageID, isStorageStateFresh } from '../lib';
+import { getStorageID, isStorageStateFresh } from '../lib';
 
 import { getOnInit } from './onInit';
 import { getCreateOrder } from './createOrder';
@@ -230,7 +227,7 @@ export function getProps({ facilitatorAccessToken, branded } : {| facilitatorAcc
     const createOrder = getCreateOrder({ createOrder: xprops.createOrder, currency, intent, merchantID, partnerAttributionID }, { facilitatorAccessToken, createBillingAgreement, createSubscription });
 
     const onError = getOnError({ onError: xprops.onError });
-    const onApprove = getOnApprove({ onApprove: xprops.onApprove, intent, onError, partnerAttributionID, clientAccessToken, vault, clientID }, { facilitatorAccessToken, branded, createOrder });
+    const onApprove = getOnApprove({ onApprove: xprops.onApprove, createBillingAgreement, createSubscription, intent, onError, partnerAttributionID, clientAccessToken, vault, clientID, facilitatorAccessToken, branded, createOrder });
     const onCancel = getOnCancel({ onCancel: xprops.onCancel, onError }, { createOrder });
     const onShippingChange = getOnShippingChange({ onShippingChange: xprops.onShippingChange, partnerAttributionID, clientID }, { facilitatorAccessToken, createOrder });
     const onAuth = getOnAuth({ facilitatorAccessToken, createOrder, createSubscription, clientID });
@@ -297,85 +294,3 @@ export function getProps({ facilitatorAccessToken, branded } : {| facilitatorAcc
         userExperienceFlow
     };
 }
-
-export type Components = {|
-    Checkout : CheckoutFlowType,
-    CardFields : CardFieldsFlowType,
-    ThreeDomainSecure : ThreeDomainSecureFlowType,
-    Menu : MenuFlowType,
-    Installments : InstallmentsFlowType,
-    QRCode : QRCodeType
-|};
-
-export function getComponents() : Components {
-    const { Checkout, CardFields, ThreeDomainSecure, Menu, Installments, QRCode } = paypal;
-    return { Checkout, CardFields, ThreeDomainSecure, Menu, Installments, QRCode };
-}
-
-export type Config = {|
-    sdkVersion : string,
-    cspNonce : ?string,
-    firebase : ?FirebaseConfig
-|};
-
-export function getConfig({ serverCSPNonce, firebaseConfig } : {| serverCSPNonce : ?string, firebaseConfig : ?FirebaseConfig |}) : Config {
-    const cspNonce = serverCSPNonce || getNonce();
-    const { version: sdkVersion } = paypal;
-
-    return {
-        sdkVersion,
-        cspNonce,
-        firebase: firebaseConfig
-    };
-}
-
-export type ServiceData = {|
-    merchantID : $ReadOnlyArray<string>,
-    buyerCountry : $Values<typeof COUNTRY>,
-    fundingEligibility : FundingEligibilityType,
-    wallet : ?Wallet,
-    facilitatorAccessToken : string,
-    sdkMeta : string,
-    buyerAccessToken : ?string,
-    content : ContentType,
-    eligibility : {|
-        cardFields : boolean
-    |},
-    cookies : string,
-    personalization : PersonalizationType
-|};
-
-type ServiceDataOptions = {|
-    facilitatorAccessToken : string,
-    buyerGeoCountry : $Values<typeof COUNTRY>,
-    fundingEligibility : FundingEligibilityType,
-    wallet : ?Wallet,
-    buyerAccessToken : ?string,
-    serverMerchantID : $ReadOnlyArray<string>,
-    sdkMeta : string,
-    content : ContentType,
-    eligibility : {|
-        cardFields : boolean
-    |},
-    cookies : string,
-    personalization : PersonalizationType
-|};
-
-export function getServiceData({ facilitatorAccessToken, sdkMeta, content, buyerGeoCountry,
-    fundingEligibility, wallet, buyerAccessToken, serverMerchantID, eligibility, cookies, personalization } : ServiceDataOptions) : ServiceData {
-
-    return {
-        merchantID:   serverMerchantID,
-        buyerCountry: buyerGeoCountry || COUNTRY.US,
-        fundingEligibility,
-        wallet,
-        sdkMeta,
-        content,
-        buyerAccessToken,
-        facilitatorAccessToken,
-        eligibility,
-        cookies,
-        personalization
-    };
-}
-

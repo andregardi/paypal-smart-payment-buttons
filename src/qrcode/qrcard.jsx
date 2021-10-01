@@ -7,6 +7,8 @@ import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 
 import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
 import { getLogger, getBody } from '../lib';
+import { openPopup } from '../ui';
+import { CHECKOUT_POPUP_DIMENSIONS } from '../payment-flows/checkout';
 
 import {
     ErrorMessage,
@@ -60,7 +62,8 @@ function QRCard({
 
     const handleClick = (selectedFundingSource : $Values<typeof FUNDING>) => {
         window.xprops.hide();
-        window.xprops.onEscapePath(selectedFundingSource).then(() => {
+        const win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT, closeOnUnload: 0 });
+        window.xprops.onEscapePath(win, selectedFundingSource).then(() => {
             window.xprops.close();
         });
     };

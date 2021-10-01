@@ -1491,15 +1491,18 @@ window.spb = function(modules) {
                     return function(choice) {
                         var win;
                         choice.popup && (win = function(_ref) {
+                            var _ref$closeOnUnload = _ref.closeOnUnload;
                             var win = function(win) {
                                 if (!isSameDomain(win)) throw new Error("Expected window to be same domain");
                                 return win;
                             }(function(url, options) {
-                                var width = (options = options || {}).width, height = options.height;
+                                var _options$closeOnUnloa = (options = options || {}).closeOnUnload, closeOnUnload = void 0 === _options$closeOnUnloa ? 1 : _options$closeOnUnloa, _options$name = options.name, name = void 0 === _options$name ? "" : _options$name, width = options.width, height = options.height;
                                 var top = 0;
                                 var left = 0;
                                 width && (window.outerWidth ? left = Math.round((window.outerWidth - width) / 2) + window.screenX : window.screen.width && (left = Math.round((window.screen.width - width) / 2)));
                                 height && (window.outerHeight ? top = Math.round((window.outerHeight - height) / 2) + window.screenY : window.screen.height && (top = Math.round((window.screen.height - height) / 2)));
+                                delete options.closeOnUnload;
+                                delete options.name;
                                 width && height && (options = _extends({
                                     top: top,
                                     left: left,
@@ -1511,8 +1514,6 @@ window.spb = function(modules) {
                                     resizable: 1,
                                     scrollbars: 1
                                 }, options));
-                                var name = options.name || "";
-                                delete options.name;
                                 var params = Object.keys(options).map((function(key) {
                                     if (null != options[key]) return key + "=" + ("string" == typeof (item = options[key]) ? item : item && item.toString && "function" == typeof item.toString ? item.toString() : {}.toString.call(item));
                                     var item;
@@ -1527,13 +1528,14 @@ window.spb = function(modules) {
                                     var err;
                                     throw new dom_PopupOpenError("Can not open popup window - blocked");
                                 }
-                                window.addEventListener("unload", (function() {
+                                closeOnUnload && window.addEventListener("unload", (function() {
                                     return win.close();
                                 }));
                                 return win;
                             }(0, {
                                 width: _ref.width,
-                                height: _ref.height
+                                height: _ref.height,
+                                closeOnUnload: void 0 === _ref$closeOnUnload ? 1 : _ref$closeOnUnload
                             }));
                             var doc = win.document;
                             !function(win, el) {

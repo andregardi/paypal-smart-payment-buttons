@@ -10,6 +10,8 @@ import { getLogger, getStorageID } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION, TARGET_ELEMENT, QRCODE_STATE, FPTI_CUSTOM_KEY } from '../../constants';
 import type { ButtonProps, ServiceData, Config, Components } from '../../button/props';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
+import type { Payment } from '../types';
+import { checkout } from '../checkout';
 
 import { getNativeUrl } from './url';
 import { connectNative } from './socket';
@@ -77,7 +79,7 @@ type NativeQRCodeOptions = {|
     serviceData : ServiceData,
     config : Config,
     components : Components,
-    fundingSource : $Values<typeof FUNDING>,
+    payment : Payment,
     sessionUID : string,
     buttonSessionID : ?string,
     clean : CleanupType,
@@ -116,8 +118,7 @@ type NativeQRCodeOptions = {|
             buttonSessionID : string
         |}>,
         onClose : () => ZalgoPromise<void>,
-        onDestroy : () => ZalgoPromise<void>,
-        onQrEscapePath : (selectedFundingSource : $Values<typeof FUNDING>) => ZalgoPromise<void>
+        onDestroy : () => ZalgoPromise<void>
     |}
 |};
 
@@ -126,10 +127,11 @@ type NativeQRCode = {|
     start : () => ZalgoPromise<void>
 |};
 
-export function initNativeQRCode({ props, serviceData, config, components, fundingSource, clean, callbacks, sessionUID, buttonSessionID  } : NativeQRCodeOptions) : NativeQRCode {
+export function initNativeQRCode({ props, serviceData, config, components, payment, clean, callbacks, sessionUID, buttonSessionID  } : NativeQRCodeOptions) : NativeQRCode {
     const { createOrder, onClick } = props;
     const { QRCode } = components;
-    const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange, onQrEscapePath } = callbacks;
+    const { fundingSource } = payment;
+    const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
 
     const qrCodeRenderTarget = window.xprops.getParent();
     const pageUrl = window.xprops.getPageUrl();
@@ -155,12 +157,20 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                 });
             };
 
-            const onEscapePath = (selectedFundingSource : $Values<typeof FUNDING>) => {
+            const onEscapePath = (win : CrossDomainWindowType, selectedFundingSource : $Values<typeof FUNDING>) => {
                 getLogger().info(`VenmoDesktopPay_process_pay_with_${ selectedFundingSource }`).track({
                     [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
                     [FPTI_KEY.TRANSITION]:  `${ FPTI_TRANSITION.QR_PROCESS_PAY_WITH }_${ selectedFundingSource }`
                 }).flush();
-                return onQrEscapePath(selectedFundingSource);
+
+                return ZalgoPromise.try(() => {
+                    const paymentInfo = { ...payment, win, fundingSource: selectedFundingSource };
+                    const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData });
+                    
+                    return instance.start().then(() => {
+                        return ZalgoPromise.resolve();
+                    });
+                });
             };
 
             const validatePromise = ZalgoPromise.try(() => {

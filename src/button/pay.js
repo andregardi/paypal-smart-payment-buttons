@@ -4,9 +4,9 @@ import { noop, stringifyError } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { applepay, checkout, cardField, cardFields, native, brandedVaultCard, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
+import { applepay, checkout, cardField, cardForm, native, brandedVaultCard, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
 import { getLogger, sendBeacon } from '../lib';
-import { FPTI_TRANSITION, BUYER_INTENT } from '../constants';
+import { FPTI_TRANSITION, BUYER_INTENT, FPTI_CONTEXT_TYPE, FPTI_CUSTOM_KEY } from '../constants';
 import { updateButtonClientConfig } from '../api';
 import { getConfirmOrder } from '../props/confirmOrder';
 import { enableVaultSetup } from '../middleware';
@@ -21,7 +21,7 @@ const PAYMENT_FLOWS : $ReadOnlyArray<PaymentFlow> = [
     vaultCapture,
     walletCapture,
     cardField,
-    cardFields,
+    cardForm,
     popupBridge,
     applepay,
     native,
@@ -74,28 +74,39 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
     return ZalgoPromise.try(() => {
         const { merchantID, personalization, fundingEligibility, buyerCountry } = serviceData;
         const { clientID, onClick, createOrder, env, vault, partnerAttributionID, userExperienceFlow, buttonSessionID, intent, currency,
-            clientAccessToken, createBillingAgreement, createSubscription, commit, disableFunding, disableCard, userIDToken  } = props;
+            clientAccessToken, createBillingAgreement, createSubscription, commit, disableFunding, disableCard, userIDToken, enableNativeCheckout  } = props;
         
         sendPersonalizationBeacons(personalization);
 
         const { name, init, inline, spinner, updateFlowClientConfig } = getPaymentFlow({ props, payment, config, components, serviceData });
         const { click, start, close } = init({ props, config, serviceData, components, payment });
 
-        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
-        clickPromise.catch(noop);
-
         getLogger()
+            .addPayloadBuilder(() => {
+                return { token: null };
+            })
             .info(`button_click`)
             .info(`button_click_pay_flow_${ name }`)
             .info(`button_click_fundingsource_${ fundingSource }`)
             .info(`button_click_instrument_${ instrumentType || 'default' }`)
+            .addTrackingBuilder(() => {
+                return {
+                    [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
+                    [FPTI_KEY.CONTEXT_TYPE]:   FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
+                    [FPTI_KEY.CONTEXT_ID]:     buttonSessionID,
+                    [FPTI_KEY.TOKEN]:          null
+                };
+            })
             .track({
-                [FPTI_KEY.TRANSITION]:     FPTI_TRANSITION.BUTTON_CLICK,
-                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
-                [FPTI_KEY.CHOSEN_FI_TYPE]: instrumentType,
-                [FPTI_KEY.PAYMENT_FLOW]:   name,
-                [FPTI_KEY.IS_VAULT]:       instrumentType ? '1' : '0'
+                [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.BUTTON_CLICK,
+                [FPTI_KEY.CHOSEN_FI_TYPE]:  instrumentType,
+                [FPTI_KEY.PAYMENT_FLOW]:    name,
+                [FPTI_KEY.IS_VAULT]:        instrumentType ? '1' : '0',
+                [FPTI_CUSTOM_KEY.INFO_MSG]: enableNativeCheckout ? 'tester' : ''
             }).flush();
+
+        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
+        clickPromise.catch(noop);
 
         return ZalgoPromise.try(() => {
             return onClick ? onClick({ fundingSource }) : true;
@@ -110,17 +121,16 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 enableLoadingSpinner(button);
             }
 
-            const updateClientConfigPromise = createOrder()
-                .then(orderID => {
-                    if (updateFlowClientConfig) {
-                        return updateFlowClientConfig({ orderID, payment, userExperienceFlow, buttonSessionID });
-                    }
+            const updateClientConfigPromise = createOrder().then(orderID => {
+                if (updateFlowClientConfig) {
+                    return updateFlowClientConfig({ orderID, payment, userExperienceFlow, buttonSessionID });
+                }
 
-                    // Do not block by default
-                    updateButtonClientConfig({ orderID, fundingSource, inline, userExperienceFlow }).catch(err => {
-                        getLogger().error('update_client_config_error', { err: stringifyError(err) });
-                    });
-                }).catch(noop);
+                // Do not block by default
+                updateButtonClientConfig({ orderID, fundingSource, inline, userExperienceFlow }).catch(err => {
+                    getLogger().error('update_client_config_error', { err: stringifyError(err) });
+                });
+            }).catch(noop);
 
             const vaultPromise = createOrder().then(orderID => {
                 return ZalgoPromise.try(() => {
@@ -131,46 +141,37 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 });
             });
 
-            const startPromise = ZalgoPromise.try(() => {
-                return updateClientConfigPromise;
-            }).then(() => {
+            const startPromise = updateClientConfigPromise.then(() => {
                 return start();
             });
 
             const validateOrderPromise = createOrder().then(orderID => {
                 return validateOrder(orderID, { env, clientID, merchantID, intent, currency, vault, buttonLabel });
             });
+             
+            const confirmOrderPromise = createOrder().then((orderID) => {
+                return window.xprops.sessionState.get(
+                    `__confirm_${ fundingSource }_payload__`
+                ).then(confirmOrderPayload => {
+                    if (!confirmOrderPayload) {
+                        // skip the confirm call when there is no confirm payload (regular flow).
+                        return;
+                    }
 
-            validateOrderPromise.catch(noop);
-            
-            const confirmOrder = ({ orderID, payload }) => getConfirmOrder({ orderID, payload, partnerAttributionID }, { facilitatorAccessToken: serviceData.facilitatorAccessToken });
-
-            
-            const confirmOrderPromise = createOrder()
-                .then((orderID) => {
-                    return window.xprops.sessionState.get(
-                        `__confirm_${ fundingSource }_payload__`
-                    )
-                        .then(confirmOrderPayload => {
-                            if (!confirmOrderPayload) {
-                                // skip the confirm call when there is no confirm payload (regular flow).
-                                return;
-                            }
-
-                            return confirmOrder({ orderID, payload: confirmOrderPayload });
-                        });
+                    return getConfirmOrder({
+                        orderID, payload: confirmOrderPayload, partnerAttributionID
+                    }, {
+                        facilitatorAccessToken: serviceData.facilitatorAccessToken
+                    });
                 });
-
-            const startSequencePromise = vaultPromise
-                .then(() => {
-                    return validateOrderPromise;
-                }).then(() => {
-                    return startPromise;
-                });
+            });
 
             return ZalgoPromise.all([
+                updateClientConfigPromise,
                 clickPromise,
-                startSequencePromise,
+                vaultPromise,
+                validateOrderPromise,
+                startPromise,
                 confirmOrderPromise
             ]).catch(err => {
                 return ZalgoPromise.try(close).then(() => {
