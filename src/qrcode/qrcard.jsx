@@ -5,8 +5,8 @@ import { h, render, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { getBody } from '../lib';
 import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
+import { getLogger, getBody } from '../lib';
 
 import {
     ErrorMessage,
@@ -18,6 +18,7 @@ import {
     cardStyle,
     debugging_nextStateMap
 } from './components';
+import { setupNativeLoggerFromParentTransporter } from './lib/logger';
 import { Survey, useSurvey } from './survey';
 
 function useXProps<T>() : T {
@@ -42,13 +43,16 @@ function useXProps<T>() : T {
 function QRCard({
     cspNonce,
     svgString,
+    buttonSessionID,
     debug
 } : {|
     cspNonce : ?string,
     svgString : string,
+    buttonSessionID : string,
     debug? : boolean
 |}) : mixed {
-    const { state, errorText, setState, close, getLogger, buttonSessionID } = useXProps();
+
+    const { state, errorText, setState, close } = useXProps();
     const survey = useSurvey();
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
@@ -62,24 +66,18 @@ function QRCard({
     };
 
     const onCloseClick = () => {
-        if (survey.isEnabled) {
+        if (state !== QRCODE_STATE.DEFAULT) {
+            close();
+        } else if (survey.isEnabled) {
             const logger = getLogger();
-
-            const logAndClose = async () => {
-                const { info } =  await logger;
-                const { track } =  await info(`VenmoDesktopPay_qrcode_survey`);
-                await track({
-                    [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
-                    [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
-                    [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
-                    [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
-                    [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
-                });
-
-                close();
-            };
-
-            logAndClose();
+            logger.info(`VenmoDesktopPay_qrcode_survey`).track({
+                [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
+                [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
+                [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
+                [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
+                [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
+            }).flush();
+            close();
         } else {
             survey.enable();
         }
@@ -109,7 +107,9 @@ function QRCard({
         <Survey survey={ survey } onCloseClick={ onCloseClick } />
     );
 
-    const content = survey.isEnabled ? surveyElement : frontView;
+    const displaySurvey = survey.isEnabled && state === QRCODE_STATE.DEFAULT;
+
+    const content = displaySurvey ? surveyElement : frontView;
     const escapePathFooter = !survey.isEnabled && (
         <p className="escape-path">Don&apos;t have the app? Pay with <span className="escape-path__link" onClick={ () => handleClick(FUNDING.PAYPAL) }>PayPal</span> or <span className="escape-path__link" onClick={ () => handleClick(FUNDING.CARD) }>Credit/Debit card</span></p>
     );
@@ -156,11 +156,14 @@ export function renderQRCode({
     svgString,
     debug = false
 } : RenderQRCodeOptions) {
+    setupNativeLoggerFromParentTransporter();
+    const { buttonSessionID } = window.xprops;
     render(
         <QRCard
             cspNonce={ cspNonce }
             svgString={ svgString }
             debug={ debug }
+            buttonSessionID={ buttonSessionID }
         />,
         getBody()
     );
