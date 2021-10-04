@@ -6,8 +6,7 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type LoggerType } from 'beaver-logger/src';
 
 import {  FPTI_TRANSITION, FPTI_STATE, AMPLITUDE_KEY, FPTI_CONTEXT_TYPE } from '../../constants';
-import { enableAmplitude, getLogger, setupLogger } from '../../lib';
-import { getSDKVersion } from '../../native/lib';
+import { enableAmplitude, getLogger, setupLogger, getSDKVersion } from '../../lib';
 
 export function setupNativeLoggerFromParentTransporter() : LoggerType {
     const { env, sessionID, buttonSessionID, sdkCorrelationID, clientID, fundingSource, locale, getParent } = window.xprops;

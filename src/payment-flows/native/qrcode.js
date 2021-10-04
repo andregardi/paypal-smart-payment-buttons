@@ -4,6 +4,7 @@ import { noop, type CleanupType } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY, FUNDING, PLATFORM } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
+import { type ProxyWindow } from 'post-robot/src';
 
 import { getNativeEligibility } from '../../api';
 import { getLogger, getStorageID } from '../../lib';
@@ -15,7 +16,7 @@ import { checkout } from '../checkout';
 
 import { getNativeUrl } from './url';
 import { connectNative } from './socket';
-import { isNativeOptedIn, type NativeOptOutOptions } from './eligibility';
+import { isNativeOptedIn, type NativeFallbackOptions } from './eligibility';
 
 type EligibilityOptions = {|
     props : ButtonProps,
@@ -75,11 +76,11 @@ function getEligibility({ fundingSource, props, serviceData, validatePromise } :
 }
 
 type NativeQRCodeOptions = {|
+    payment : Payment,
     props : ButtonProps,
     serviceData : ServiceData,
     config : Config,
     components : Components,
-    payment : Payment,
     sessionUID : string,
     buttonSessionID : ?string,
     clean : CleanupType,
@@ -112,8 +113,8 @@ type NativeQRCodeOptions = {|
             resolved : boolean
         |}>,
         onFallback : (opts? : {|
-            win? : CrossDomainWindowType,
-            optOut? : NativeOptOutOptions
+            win? : CrossDomainWindowType | ProxyWindow,
+            fallbackOptions? : NativeFallbackOptions
         |}) => ZalgoPromise<{|
             buttonSessionID : string
         |}>,
@@ -157,6 +158,13 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                 });
             };
 
+            const restart = () => {
+                return ZalgoPromise.try(() => {
+                    throw new Error(`QRcode restart not implemented`);
+                });
+            };
+
+
             const onEscapePath = (win : CrossDomainWindowType, selectedFundingSource : $Values<typeof FUNDING>) => {
                 getLogger().info(`VenmoDesktopPay_process_pay_with_${ selectedFundingSource }`).track({
                     [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
@@ -165,7 +173,7 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
 
                 return ZalgoPromise.try(() => {
                     const paymentInfo = { ...payment, win, fundingSource: selectedFundingSource };
-                    const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData });
+                    const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData, restart });
                     
                     return instance.start().then(() => {
                         return ZalgoPromise.resolve();
@@ -265,7 +273,7 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                             state:     QRCODE_STATE.ERROR,
                             errorText: 'The authorization was canceled'
                         }).then(() => {
-                            return onFallback({ optOut: data });
+                            return onFallback({ fallbackOptions: data });
                         });
                     };
 

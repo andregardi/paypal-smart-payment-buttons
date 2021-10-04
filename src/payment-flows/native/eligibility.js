@@ -175,11 +175,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 export function isNativePaymentEligible({ props, payment } : IsPaymentEligibleOptions) : boolean {
 
     const { platform } = props;
-    const { win, fundingSource } = payment;
-
-    if (win) {
-        return false;
-    }
+    const { fundingSource } = payment;
 
     if (!NATIVE_CHECKOUT_URI[fundingSource] || !NATIVE_CHECKOUT_POPUP_URI[fundingSource] || !NATIVE_CHECKOUT_FALLBACK_URI[fundingSource]) {
         return false;
@@ -209,27 +205,30 @@ export function isNativePaymentEligible({ props, payment } : IsPaymentEligibleOp
     return true;
 }
 
-export type NativeOptOutOptions = {|
+export type NativeFallbackOptions = {|
     type? : string,
     skip_native_duration? : number,
     fallback_reason? : string
 |};
 
-export function getDefaultNativeOptOutOptions() : NativeOptOutOptions {
+export function getDefaultNativeFallbackOptions() : NativeFallbackOptions {
     // $FlowFixMe
     return {};
 }
 
-export function setNativeOptOut(optOut : NativeOptOutOptions) : boolean {
+export function setNativeOptOut(fallbackOptions : NativeFallbackOptions) : boolean {
     const NATIVE_OPT_OUT = 'native_opt_out';
-    const { type, skip_native_duration } = optOut;
+    const { type, skip_native_duration } = fallbackOptions;
 
     if (type && type === NATIVE_OPT_OUT) {
 
         // Opt-out 6 weeks from native experience as default
         let OPT_OUT_TIME = 6 * 7 * 24 * 60 * 60 * 1000;
-        if (skip_native_duration && typeof skip_native_duration === 'number') {
-            OPT_OUT_TIME = skip_native_duration;
+
+        const parsedSkipDuration = parseInt(skip_native_duration, 10);
+
+        if (parsedSkipDuration && typeof parsedSkipDuration === 'number') {
+            OPT_OUT_TIME = parsedSkipDuration;
         }
         
         const now = Date.now();
