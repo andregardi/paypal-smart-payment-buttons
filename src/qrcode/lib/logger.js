@@ -3,18 +3,22 @@
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { isIEIntranet, getPageRenderTime } from 'belter/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
-import { type LoggerType } from 'beaver-logger/src';
+import { type LoggerType, getHTTPTransport } from 'beaver-logger/src';
 
 import {  FPTI_TRANSITION, FPTI_STATE, AMPLITUDE_KEY, FPTI_CONTEXT_TYPE } from '../../constants';
 import { enableAmplitude, getLogger, setupLogger, getSDKVersion } from '../../lib';
 
-export function setupNativeLoggerFromParentTransporter() : LoggerType {
+export function setupNativeQRLogger() : LoggerType {
     const { env, sessionID, buttonSessionID, sdkCorrelationID, clientID, fundingSource, locale, getParent } = window.xprops;
-
+    
+    const parent = getParent();
     const sdkVersion = getSDKVersion();
     const buyerCountry = locale.country;
 
-    const logger = getLogger(getParent());
+    const logger = getLogger();
+    logger.configure({
+        transport: parent && getHTTPTransport(parent)
+    });
 
     setupLogger({ env, sessionID, clientID, sdkCorrelationID, locale, sdkVersion, buyerCountry, fundingSource });
     enableAmplitude({ env });

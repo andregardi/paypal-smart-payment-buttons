@@ -20,7 +20,7 @@ import {
     cardStyle,
     debugging_nextStateMap
 } from './components';
-import { setupNativeLoggerFromParentTransporter } from './lib/logger';
+import { setupNativeQRLogger } from './lib/logger';
 import { Survey, useSurvey } from './survey';
 
 function useXProps<T>() : T {
@@ -159,7 +159,7 @@ export function renderQRCode({
     svgString,
     debug = false
 } : RenderQRCodeOptions) {
-    setupNativeLoggerFromParentTransporter();
+    setupNativeQRLogger();
     const { buttonSessionID } = window.xprops;
     render(
         <QRCard

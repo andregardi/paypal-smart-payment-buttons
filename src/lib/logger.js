@@ -1,23 +1,19 @@
 /* @flow */
 
-import { Logger, getHTTPTransport, type LoggerType } from 'beaver-logger/src';
+import { Logger, type LoggerType } from 'beaver-logger/src';
 import { noop, stringifyError, stringifyErrorMessage, inlineMemoize, isAndroid, isIos } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY, FPTI_FEED, FPTI_DATA_SOURCE, FPTI_SDK_NAME, ENV, COUNTRY, MOBILE_ENV, FUNDING } from '@paypal/sdk-constants/src';
-import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import type { LocaleType } from '../types';
 import { LOGGER_URL, AMPLITUDE_API_KEY } from '../config';
 
-export function getLogger(parent? : CrossDomainWindowType) : LoggerType {
-    return inlineMemoize(getLogger, () => {
-        const config = {
-            url:                LOGGER_URL,
-            enableSendBeacon:   true,
-            transport:          parent && getHTTPTransport(parent)
-        };
-        return Logger(config);
-    });
+export function getLogger() : LoggerType {
+    return inlineMemoize(getLogger, () =>
+        Logger({
+            url:              LOGGER_URL,
+            enableSendBeacon: true
+        }));
 }
 
 export function enableAmplitude({ env } : {| env : $Values<typeof ENV> |}) {
