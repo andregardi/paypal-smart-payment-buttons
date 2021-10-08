@@ -203,7 +203,7 @@ function initNative({ props, components, config, payment, serviceData, restart }
     }
 
     const flow = initFlow({
-        props, serviceData, config, components, payment, clean, sessionUID,
+        payment, props, serviceData, config, components, clean, sessionUID,
         callbacks: {
             onInit:            onInitCallback,
             onApprove:         onApproveCallback,

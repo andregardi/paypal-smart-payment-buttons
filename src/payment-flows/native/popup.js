@@ -111,7 +111,6 @@ type NativePopupOptions = {|
     config : Config,
     components : Components,
     sessionUID : string,
-    buttonSessionID : ?string,
     clean : CleanupType,
     callbacks : {|
         onInit : () => ZalgoPromise<{|
