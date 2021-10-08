@@ -82,7 +82,6 @@ type NativeQRCodeOptions = {|
     config : Config,
     components : Components,
     sessionUID : string,
-    buttonSessionID : ?string,
     clean : CleanupType,
     callbacks : {|
         onInit : () => ZalgoPromise<{|
@@ -128,8 +127,8 @@ type NativeQRCode = {|
     start : () => ZalgoPromise<void>
 |};
 
-export function initNativeQRCode({ props, serviceData, config, components, payment, clean, callbacks, sessionUID, buttonSessionID  } : NativeQRCodeOptions) : NativeQRCode {
-    const { createOrder, onClick } = props;
+export function initNativeQRCode({ props, serviceData, config, components, payment, clean, callbacks, sessionUID } : NativeQRCodeOptions) : NativeQRCode {
+    const { buttonSessionID, createOrder, onClick } = props;
     const { QRCode } = components;
     const { fundingSource } = payment;
     const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
