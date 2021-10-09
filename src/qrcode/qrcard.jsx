@@ -5,8 +5,8 @@ import { h, render, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
 import { getLogger, getBody } from '../lib';
+import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
 import { openPopup } from '../ui';
 import { CHECKOUT_POPUP_DIMENSIONS } from '../payment-flows/checkout';
 
