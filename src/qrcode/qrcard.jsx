@@ -43,10 +43,8 @@ function useXProps<T>() : T {
 }
 
 function QRCard({
-    cspNonce,
     svgString
 } : {|
-    cspNonce : ?string,
     svgString : string
 |}) : mixed {
 
@@ -115,7 +113,7 @@ function QRCard({
 
     return (
         <Fragment>
-            <style nonce={ cspNonce }> { cardStyle } </style>
+            <style nonce={ window.xprops.cspNonce }> { cardStyle } </style>
             <a href="#" id="close" aria-label="close" role="button" onClick={ onCloseClick } />
             <div id="view-boxes" className={ state }>
                 { isError() ? errorMessage : content }
@@ -153,13 +151,11 @@ type RenderQRCodeOptions = {|
 |};
 
 export function renderQRCode({
-    cspNonce = '',
     svgString
 } : RenderQRCodeOptions) {
     setupNativeQRLogger();
     render(
         <QRCard
-            cspNonce={ cspNonce }
             svgString={ svgString }
         />,
         getBody()
