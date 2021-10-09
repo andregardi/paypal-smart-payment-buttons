@@ -207,12 +207,12 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
 
                 return createOrder().then((orderID) => {
                     const url = getNativeUrl({ props, serviceData, config, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
-                    
+
                     const qrCodeComponentInstance = QRCode({
-                        cspNonce:               config.cspNonce,
-                        qrPath:                 url,
-                        state:                  QRCODE_STATE.DEFAULT,
-                        onClose:                onQRClose,
+                        cspNonce:     config.cspNonce,
+                        qrPath:       url,
+                        state:        QRCODE_STATE.DEFAULT,
+                        onClose:      onQRClose,
                         onEscapePath
                     });
 
