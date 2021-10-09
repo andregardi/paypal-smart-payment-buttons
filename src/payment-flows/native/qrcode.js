@@ -128,7 +128,7 @@ type NativeQRCode = {|
 |};
 
 export function initNativeQRCode({ props, serviceData, config, components, payment, clean, callbacks, sessionUID } : NativeQRCodeOptions) : NativeQRCode {
-    const { buttonSessionID, createOrder, onClick } = props;
+    const { createOrder, onClick } = props;
     const { QRCode } = components;
     const { fundingSource } = payment;
     const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
@@ -213,8 +213,6 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                         qrPath:                 url,
                         state:                  QRCODE_STATE.DEFAULT,
                         onClose:                onQRClose,
-                        buttonSessionID:        buttonSessionID || '',
-                        getLogger,
                         onEscapePath
                     });
 
@@ -226,7 +224,6 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                             cspNonce:     config.cspNonce,
                             qrPath:       url,
                             onClose:      onQRClose,
-                            getLogger,
                             onEscapePath,
                             ...newState
                         });
