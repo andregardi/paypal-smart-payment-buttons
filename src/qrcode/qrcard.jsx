@@ -44,14 +44,10 @@ function useXProps<T>() : T {
 
 function QRCard({
     cspNonce,
-    svgString,
-    buttonSessionID,
-    debug
+    svgString
 } : {|
     cspNonce : ?string,
-    svgString : string,
-    buttonSessionID : string,
-    debug? : boolean
+    svgString : string
 |}) : mixed {
 
     const { state, errorText, setState, close } = useXProps();
@@ -64,7 +60,7 @@ function QRCard({
         window.xprops.hide();
         const win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT, closeOnUnload: 0 });
         window.xprops.onEscapePath(win, selectedFundingSource).then(() => {
-            window.xprops.close();
+            close();
         });
     };
 
@@ -76,7 +72,7 @@ function QRCard({
             logger.info(`VenmoDesktopPay_qrcode_survey`).track({
                 [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
                 [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
-                [FPTI_KEY.CONTEXT_ID]:                          buttonSessionID,
+                [FPTI_KEY.CONTEXT_ID]:                          window.xprops.buttonSessionID,
                 [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
                 [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
             }).flush();
@@ -137,11 +133,14 @@ function QRCard({
                     </div>
 
                 </div>
-                { debug && <button
-                    type="button"
-                    style={ { position: 'absolute', bottom: '8px', padding: '4px', right: '8px' } }
-                    onClick={ () => setState(debugging_nextStateMap.get(state)) }
-                >Next State</button>}
+                { window.xprops.debug &&
+                    <button
+                        type="button"
+                        style={ { position: 'absolute', bottom: '8px', padding: '4px', right: '8px' } }
+                        onClick={ () => setState(debugging_nextStateMap.get(state)) }
+                    >
+                        Next State
+                    </button>}
             </div>
             { escapePathFooter }
         </Fragment>
@@ -150,23 +149,18 @@ function QRCard({
 
 type RenderQRCodeOptions = {|
     cspNonce? : string,
-    svgString : string,
-    debug : boolean
+    svgString : string
 |};
 
 export function renderQRCode({
     cspNonce = '',
-    svgString,
-    debug = false
+    svgString
 } : RenderQRCodeOptions) {
     setupNativeQRLogger();
-    const { buttonSessionID } = window.xprops;
     render(
         <QRCard
             cspNonce={ cspNonce }
             svgString={ svgString }
-            debug={ debug }
-            buttonSessionID={ buttonSessionID }
         />,
         getBody()
     );
