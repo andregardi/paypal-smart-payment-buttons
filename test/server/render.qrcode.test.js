@@ -44,12 +44,7 @@ function isRenderCallCorrect ({ html, debug } : {|html : string, debug : boolean
         throw new Error(`svgPath is not correct. Expected .*"http://www.w3.org/2000/svg, but was ${ html.slice(html.indexOf('svgString')) }`);
     }
 
-    const debug_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"debug":${ debugValue }}`)));
-    if (!debug_isCorrect) {
-        throw new Error(`debug is not correct. Expected ${ html.slice(html.indexOf('debug:')) }, but was ${ debugValue }`);
-    }
-
-    return cspNonce_isCorrect && svgPath_isCorrect && debug_isCorrect;
+    return cspNonce_isCorrect && svgPath_isCorrect;
     /* eslint-enable */
 }
 
