@@ -130,6 +130,7 @@ export type QRCodeProps = {|
     cspNonce : ?string,
     state? : $Values<typeof QRCODE_STATE>,
     errorText? : string,
+    orderID : string,
     onClose? : () => ZalgoPromise<void>,
     onEscapePath? : (win : CrossDomainWindowType,
     selectedFundingSource : $Values<typeof FUNDING>) => ZalgoPromise<void>
