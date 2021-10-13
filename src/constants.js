@@ -164,6 +164,7 @@ export const FPTI_TRANSITION = {
     NATIVE_OPT_OUT:                         ('native_opt_out' : 'native_opt_out'),
     NATIVE_FALLBACK:                        ('native_fallback' : 'native_fallback'),
     
+    QR_LOAD:                                ('qr_load' : 'qr_load'),
     QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
     QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
     QR_SURVEY:                              ('desktop_exit_survey_selection_submitted' : 'desktop_exit_survey_selection_submitted'),

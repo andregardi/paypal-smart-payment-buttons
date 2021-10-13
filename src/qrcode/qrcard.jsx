@@ -43,8 +43,12 @@ function useXProps<T>() : T {
 }
 
 function QRCard({
+    cspNonce,
+    debug,
     svgString
 } : {|
+    cspNonce? : string,
+    debug? : boolean,
     svgString : string
 |}) : mixed {
 
@@ -113,7 +117,7 @@ function QRCard({
 
     return (
         <Fragment>
-            <style nonce={ window.xprops.cspNonce }> { cardStyle } </style>
+            <style nonce={ cspNonce }> { cardStyle } </style>
             <a href="#" id="close" aria-label="close" role="button" onClick={ onCloseClick } />
             <div id="view-boxes" className={ state }>
                 { isError() ? errorMessage : content }
@@ -131,7 +135,7 @@ function QRCard({
                     </div>
 
                 </div>
-                { window.xprops.debug &&
+                { debug &&
                     <button
                         type="button"
                         style={ { position: 'absolute', bottom: '8px', padding: '4px', right: '8px' } }
@@ -147,15 +151,20 @@ function QRCard({
 
 type RenderQRCodeOptions = {|
     cspNonce? : string,
+    debug? : boolean,
     svgString : string
 |};
 
 export function renderQRCode({
+    cspNonce,
+    debug,
     svgString
 } : RenderQRCodeOptions) {
     setupNativeQRLogger();
     render(
         <QRCard
+            cspNonce={ cspNonce }
+            debug={ debug }
             svgString={ svgString }
         />,
         getBody()
