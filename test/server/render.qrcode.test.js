@@ -35,8 +35,20 @@ function isRenderCallCorrect ({ html, debug } : {|html : string, debug : boolean
     const debugValue = debug.toString();
     const startOfSVGString = RegExp(`renderQRCode.*,"svgString":".*"http://www.w3.org/2000/svg`);
     const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.{"cspNonce":".*"`)));
+    if (!cspNonce_isCorrect) {
+        throw new Error(`cspNonce is not correct. Expected renderQRCode.{"cspNonce":".*", but was ${ html.slice(html.indexOf('cspNonce')) }`);
+    }
+
     const svgPath_isCorrect = Boolean(html.match(startOfSVGString));
+    if (!svgPath_isCorrect) {
+        throw new Error(`svgPath is not correct. Expected .*"http://www.w3.org/2000/svg, but was ${ html.slice(html.indexOf('svgString')) }`);
+    }
+
     const debug_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"debug":${ debugValue }}`)));
+    if (!debug_isCorrect) {
+        throw new Error(`debug is not correct. Expected ${ html.slice(html.indexOf('debug:')) }, but was ${ debugValue }`);
+    }
+
     return cspNonce_isCorrect && svgPath_isCorrect && debug_isCorrect;
     /* eslint-enable */
 }
@@ -70,10 +82,13 @@ test('should do a basic QRCode page render', async () => {
     if (!html) {
         throw new Error(`Expected res to have a body`);
     }
-
-    if (!isRenderCallCorrect({ html, debug: false })) {
-        throw new Error(`Construction of the renderQRCode call is incorrect`);
+    
+    try {
+        isRenderCallCorrect({ html, debug: false });
+    } catch (e) {
+        throw new Error(e.message);
     }
+
 });
 
 test('should fail if qrPath query param not provided', async () => {
