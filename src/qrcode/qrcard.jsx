@@ -74,7 +74,7 @@ function QRCard({
                 [FPTI_KEY.CONTEXT_ID]:                          window.xprops.orderID,
                 [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
                 [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
-            }).flush().then(close);
+            }).flush();
         } else {
             survey.enable();
         }
