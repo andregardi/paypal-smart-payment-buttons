@@ -34,7 +34,7 @@ function isRenderCallCorrect ({ html, debug } : {|html : string, debug : boolean
     /* eslint-disable prefer-regex-literals */
     const debugValue = debug.toString();
     const startOfSVGString = RegExp(`renderQRCode.*"svgString":".*"http://www.w3.org/2000/svg`);
-    const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.{"cspNonce":".*"`)));
+    const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*"cspNonce":".*"`)));
     if (!cspNonce_isCorrect) {
         throw new Error(`cspNonce is not correct. Expected renderQRCode.{"cspNonce":".*", but was ${ html.slice(html.indexOf('cspNonce')) }`);
     }
