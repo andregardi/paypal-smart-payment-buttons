@@ -30,9 +30,8 @@ const logger = {
 
 const test_qrPath = 'string_to_be_encoded';
 
-function isRenderCallCorrect ({ html, debug } : {|html : string, debug : boolean|}) : boolean {
+function isRenderCallCorrect ({ html } : {|html : string |}) : boolean {
     /* eslint-disable prefer-regex-literals */
-    const debugValue = debug.toString();
     const startOfSVGString = RegExp(`renderQRCode.*"svgString":".*"http://www.w3.org/2000/svg`);
     const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*"cspNonce":".*"`)));
     if (!cspNonce_isCorrect) {
@@ -79,7 +78,7 @@ test('should do a basic QRCode page render', async () => {
     }
     
     try {
-        isRenderCallCorrect({ html, debug: false });
+        isRenderCallCorrect({ html });
     } catch (e) {
         throw new Error(e.message);
     }
@@ -181,7 +180,7 @@ test('should render & make correct init call when when "debug" param passed', as
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, debug: true })) {
+    if (!isRenderCallCorrect({ html })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
