@@ -5,8 +5,8 @@ import { h, render, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { getLogger, getBody } from '../lib';
-import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE } from '../constants';
+import { getBody } from '../lib';
+import { QRCODE_STATE, FPTI_CUSTOM_KEY, FPTI_TRANSITION, FPTI_STATE, FPTI_CONTEXT_TYPE } from '../constants';
 import { openPopup } from '../ui';
 import { CHECKOUT_POPUP_DIMENSIONS } from '../payment-flows/checkout';
 
@@ -22,6 +22,8 @@ import {
 } from './components';
 import { setupNativeQRLogger } from './lib/logger';
 import { Survey, useSurvey } from './survey';
+
+let logger;
 
 function useXProps<T>() : T {
     const [ xprops, setXProps ] = useState(window.xprops);
@@ -43,12 +45,8 @@ function useXProps<T>() : T {
 }
 
 function QRCard({
-    cspNonce,
-    debug,
     svgString
 } : {|
-    cspNonce? : string,
-    debug? : boolean,
     svgString : string
 |}) : mixed {
 
@@ -70,15 +68,13 @@ function QRCard({
         if (state !== QRCODE_STATE.DEFAULT) {
             close();
         } else if (survey.isEnabled) {
-            const logger = getLogger();
             logger.info(`VenmoDesktopPay_qrcode_survey`).track({
                 [FPTI_KEY.STATE]:                               FPTI_STATE.BUTTON,
-                [FPTI_KEY.CONTEXT_TYPE]:                        'button_session_id',
-                [FPTI_KEY.CONTEXT_ID]:                          window.xprops.buttonSessionID,
+                [FPTI_KEY.CONTEXT_TYPE]:                        FPTI_CONTEXT_TYPE.ORDER_ID,
+                [FPTI_KEY.CONTEXT_ID]:                          window.xprops.orderID,
                 [FPTI_KEY.TRANSITION]:                          `${ FPTI_TRANSITION.QR_SURVEY }`,
                 [FPTI_CUSTOM_KEY.DESKTOP_EXIT_SURVEY_REASON]:   survey.reason
-            }).flush();
-            close();
+            }).flush().then(close);
         } else {
             survey.enable();
         }
@@ -117,7 +113,7 @@ function QRCard({
 
     return (
         <Fragment>
-            <style nonce={ cspNonce }> { cardStyle } </style>
+            <style nonce={ window.xprops.cspNonce }> { cardStyle } </style>
             <a href="#" id="close" aria-label="close" role="button" onClick={ onCloseClick } />
             <div id="view-boxes" className={ state }>
                 { isError() ? errorMessage : content }
@@ -135,7 +131,7 @@ function QRCard({
                     </div>
 
                 </div>
-                { debug &&
+                { window.xprops.debug &&
                     <button
                         type="button"
                         style={ { position: 'absolute', bottom: '8px', padding: '4px', right: '8px' } }
@@ -150,21 +146,15 @@ function QRCard({
 }
 
 type RenderQRCodeOptions = {|
-    cspNonce? : string,
-    debug? : boolean,
     svgString : string
 |};
 
 export function renderQRCode({
-    cspNonce,
-    debug,
     svgString
 } : RenderQRCodeOptions) {
-    setupNativeQRLogger();
+    logger = setupNativeQRLogger();
     render(
         <QRCard
-            cspNonce={ cspNonce }
-            debug={ debug }
             svgString={ svgString }
         />,
         getBody()

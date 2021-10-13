@@ -212,6 +212,7 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                         cspNonce:     config.cspNonce,
                         qrPath:       url,
                         state:        QRCODE_STATE.DEFAULT,
+                        orderID,
                         onClose:      onQRClose,
                         onEscapePath
                     });

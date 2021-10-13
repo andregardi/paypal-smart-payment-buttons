@@ -343,9 +343,7 @@ export const cardStyle : string = `
         min-width: 40px;
     }
     #survey .answers input{
-        width: 0px;
-        height: 40px;
-        position: relative;
+        display: none;
     }
     #survey .answers input:focus::after {
         content: "";
