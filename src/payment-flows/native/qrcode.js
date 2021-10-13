@@ -224,6 +224,7 @@ export function initNativeQRCode({ props, serviceData, config, components, payme
                         return qrCodeComponentInstance.updateProps({
                             cspNonce:     config.cspNonce,
                             qrPath:       url,
+                            orderID,
                             onClose:      onQRClose,
                             onEscapePath,
                             ...newState
