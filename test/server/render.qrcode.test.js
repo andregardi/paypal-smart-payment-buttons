@@ -31,25 +31,18 @@ const logger = {
 const test_qrPath = 'string_to_be_encoded';
 
 function isRenderCallCorrect ({ html } : {|html : string |}) : boolean {
-    /* eslint-disable prefer-regex-literals */
-    const startOfSVGString = RegExp(`renderQRCode.*"svgString":".*"http://www.w3.org/2000/svg`);
-    const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*"cspNonce":".*"`)));
-    if (!cspNonce_isCorrect) {
-        throw new Error(`cspNonce is not correct. Expected renderQRCode.{"cspNonce":".*", but was ${ html.slice(html.indexOf('cspNonce')) }`);
-    }
+    const startOfSVGString = /renderQRCode.*{"svgString":.*"http:\/\/www.w3.org\/2000\/svg/g;
 
     const svgPath_isCorrect = Boolean(html.match(startOfSVGString));
     if (!svgPath_isCorrect) {
-        throw new Error(`svgPath is not correct. Expected .*"http://www.w3.org/2000/svg, but was ${ html.slice(html.indexOf('svgString')) }`);
+        throw new Error(`svgPath is not correct.`);
     }
 
-    return cspNonce_isCorrect && svgPath_isCorrect;
-    /* eslint-enable */
+    return svgPath_isCorrect;
 }
 
 test('should do a basic QRCode page render', async () => {
     const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache, getInstanceLocationInformation });
-
     const req = mockReq({
         query: {
             parentDomain: 'foo.paypal.com',
